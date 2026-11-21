@@ -1,0 +1,17 @@
+[
+  "avg_temp_c_lag1",
+  "avg_temp_c_lag2",
+  "avg_temp_c_lag3",
+  "avg_temp_c_lag4",
+  "rainfall_mm_lag1",
+  "rainfall_mm_lag2",
+  "rainfall_mm_lag3",
+  "rainfall_mm_lag4",
+  "relative_humidity_pct_lag1",
+  "relative_humidity_pct_lag2",
+  "relative_humidity_pct_lag3",
+  "relative_humidity_pct_lag4",
+  "population_density_sqkm",
+  "water_logging_risk_index",
+  "sanitation_score"
+]
