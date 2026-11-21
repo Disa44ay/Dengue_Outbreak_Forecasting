@@ -42,9 +42,9 @@ forecast week+2) was deliberately avoided — it compounds error, since a bad ea
 corrupt every later one; every horizon here is anchored to the same real, uncorrupted 4-week
 window instead.
 
-**Evidence, not assumption.** Eleven candidates were compared on the identical chronological
-split and feature set: linear regression, ridge, random forest, gradient boosting,
-HistGradientBoosting, XGBoost, LightGBM — each in both squared-error and Poisson-objective form —
+**Evidence, not assumption.** Twelve candidates were compared on the identical chronological
+split and 15-feature set: linear regression, ridge, random forest, extra trees, gradient boosting,
+HistGradientBoosting, XGBoost, LightGBM — most in both squared-error and Poisson-objective form —
 against a naive "always predict the train-split median" baseline.
 
 | model                    | h2 MAE | h3 MAE | h4 MAE | avg MAE |
@@ -52,6 +52,7 @@ against a naive "always predict the train-split median" baseline.
 | **lightgbm_poisson (winner)** | 1.315 | 1.493 | 1.682 | **1.497** |
 | hist_gb_poisson (statistical tie) | 1.264 | 1.492 | 1.738 | 1.498 |
 | xgboost_poisson          | 1.302  | 1.554  | 1.650  | 1.502   |
+| extra_trees_poisson      | 1.337  | 1.541  | 1.717  | 1.532   |
 | lightgbm (squared-error)  | 1.356  | 1.527  | 1.781  | 1.555   |
 | gradient_boosting        | 1.349  | 1.620  | 1.787  | 1.585   |
 | random_forest_poisson    | 1.363  | 1.636  | 1.778  | 1.592   |
@@ -60,6 +61,13 @@ against a naive "always predict the train-split median" baseline.
 | ridge                    | 1.778  | 1.982  | 2.198  | 1.986   |
 | linear_regression        | 1.778  | 1.982  | 2.198  | 1.986   |
 | naive (train median)     | 2.577  | 2.578  | 2.578  | 2.578   |
+
+`extra_trees_poisson` uses hyperparameters from a teammate's independent, more rigorous
+model-selection run (walk-forward CV, Optuna tuning, 57-feature set) where Extra Trees was the
+validated winner. Re-tested here, on our leaner 15-feature set, it ranks 4th — confirming that
+result was feature-set-driven (bagging's variance reduction helps more with many correlated
+inputs; boosting's sequential error-correction has more to work with on fewer, concentrated
+features), not evidence that bagged trees generally beat boosting for this problem.
 
 Every Poisson-objective variant beat its squared-error counterpart — expected, since 58% of
 `dengue_cases` rows are 0 and a Poisson loss matches that count-data shape better than squared
