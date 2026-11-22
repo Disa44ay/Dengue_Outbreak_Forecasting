@@ -7,6 +7,8 @@ const PREDICTION: PredictionResponse = {
   ward_id: "DNCC_Ward_20",
   horizon_weeks: 3,
   predicted_cases: 7.3,
+  interval_low: 4.1,
+  interval_high: 10.5,
   risk_tier: "High",
   drivers: [],
 };
@@ -31,5 +33,11 @@ describe("RiskPlate", () => {
     const { container } = render(<RiskPlate prediction={PREDICTION} city="Dhaka North" />);
 
     expect(container.querySelector(".tier--high")).not.toBeNull();
+  });
+
+  test("shows the confidence interval", () => {
+    render(<RiskPlate prediction={PREDICTION} city="Dhaka North" />);
+
+    expect(screen.getByText(/4.1.*10.5/)).toBeInTheDocument();
   });
 });

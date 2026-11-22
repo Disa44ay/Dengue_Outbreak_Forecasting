@@ -15,7 +15,11 @@ export function RiskPlate({ prediction, city }: RiskPlateProps) {
       </div>
       <div className="plate-figure">
         <span className="figure num">{prediction.predicted_cases.toFixed(1)}</span>
-        <span className="unit">cases, {prediction.horizon_weeks}w out</span>
+        <span className="unit">
+          cases, {prediction.horizon_weeks}w out
+          <br />
+          range {prediction.interval_low.toFixed(1)} to {prediction.interval_high.toFixed(1)}
+        </span>
       </div>
       <span className={`tier tier--${tier}`}>
         <span className="tier-swatch" aria-hidden="true" />

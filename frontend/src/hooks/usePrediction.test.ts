@@ -7,6 +7,8 @@ const SAMPLE_PREDICTION = {
   ward_id: "DNCC_Ward_20",
   horizon_weeks: 2 as const,
   predicted_cases: 7.3,
+  interval_low: 4.1,
+  interval_high: 10.5,
   risk_tier: "High" as const,
   drivers: [],
 };

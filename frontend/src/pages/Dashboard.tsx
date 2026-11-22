@@ -10,10 +10,12 @@ import { PlateSkeleton, BoardSkeleton } from "../components/dashboard/Skeleton";
 import { StateMessage } from "../components/dashboard/StateMessage";
 import { useWards } from "../hooks/useWards";
 import { usePrediction } from "../hooks/usePrediction";
+import { useMetrics } from "../hooks/useMetrics";
 import { parseHorizon } from "../lib/horizon";
 
 export function Dashboard() {
   const { wards, loading: wardsLoading, error: wardsError } = useWards();
+  const { metrics, loading: metricsLoading, error: metricsError } = useMetrics();
   const [searchParams, setSearchParams] = useSearchParams();
 
   const selectedWardId = searchParams.get("ward");
@@ -94,7 +96,7 @@ export function Dashboard() {
         </>
       )}
 
-      <ValidationRows />
+      <ValidationRows metrics={metrics} loading={metricsLoading} error={metricsError} />
     </Layout>
   );
 }

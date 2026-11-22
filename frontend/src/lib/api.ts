@@ -1,4 +1,4 @@
-import type { PredictionResponse, WardInfo } from "../types/api";
+import type { MetricsResponse, PredictionResponse, WardInfo } from "../types/api";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000";
 
@@ -24,4 +24,8 @@ export function getPrediction(
     horizon_weeks: String(horizonWeeks),
   });
   return request<PredictionResponse>(`/predict?${params.toString()}`);
+}
+
+export function getMetrics(): Promise<MetricsResponse> {
+  return request<MetricsResponse>("/metrics");
 }

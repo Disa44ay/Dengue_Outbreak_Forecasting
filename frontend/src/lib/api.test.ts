@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
-import { getPrediction, getWards } from "./api";
+import { getMetrics, getPrediction, getWards } from "./api";
 
 describe("getWards", () => {
   beforeEach(() => {
@@ -54,6 +54,8 @@ describe("getPrediction", () => {
           ward_id: "DNCC_Ward_20",
           horizon_weeks: 3,
           predicted_cases: 7.3,
+          interval_low: 4.1,
+          interval_high: 10.5,
           risk_tier: "High",
           drivers: [],
         }),
@@ -74,6 +76,8 @@ describe("getPrediction", () => {
       ward_id: "DNCC_Ward_20",
       horizon_weeks: 2 as const,
       predicted_cases: 7.3,
+      interval_low: 4.1,
+      interval_high: 10.5,
       risk_tier: "High" as const,
       drivers: [{ feature: "rainfall_mm_lag2", value: 42.1, importance: 0.81 }],
     };
@@ -89,6 +93,46 @@ describe("getPrediction", () => {
 
     await expect(getPrediction("BAD_WARD", 2)).rejects.toThrow(
       "404 Not Found: unknown ward_id: BAD_WARD",
+    );
+  });
+});
+
+describe("getMetrics", () => {
+  beforeEach(() => {
+    vi.stubGlobal("fetch", vi.fn());
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  test("requests the /metrics endpoint", async () => {
+    vi.mocked(fetch).mockResolvedValue(
+      new Response(JSON.stringify({ split_rows: {}, horizons: {} }), { status: 200 }),
+    );
+
+    await getMetrics();
+
+    expect(fetch).toHaveBeenCalledWith(expect.stringMatching(/\/metrics$/));
+  });
+
+  test("resolves with the parsed metrics on success", async () => {
+    const metrics = {
+      split_rows: { train: 24780, val: 3180, test: 2880 },
+      horizons: { "2": { mae: 1.315, rmse: 2.469 } },
+    };
+    vi.mocked(fetch).mockResolvedValue(new Response(JSON.stringify(metrics), { status: 200 }));
+
+    await expect(getMetrics()).resolves.toEqual(metrics);
+  });
+
+  test("rejects with the status and body when metrics are unavailable", async () => {
+    vi.mocked(fetch).mockResolvedValue(
+      new Response("metrics.json not found", { status: 503, statusText: "Service Unavailable" }),
+    );
+
+    await expect(getMetrics()).rejects.toThrow(
+      "503 Service Unavailable: metrics.json not found",
     );
   });
 });
