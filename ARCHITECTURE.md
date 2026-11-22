@@ -16,6 +16,51 @@ Training is offline and run once per dataset update (requires `data/dengue_datas
 Serving reads only the committed artifacts in `ml/artifacts/` — it never touches the raw CSV, which
 is what lets a fresh clone launch in ≤3 minutes without the dataset present.
 
+## Decision flow
+
+Every real decision made while building this, in the order it happened — not just the final
+answer, including the dead ends:
+
+```mermaid
+flowchart TD
+    subgraph P1[Phase 1 - explore the data]
+        A1["58% of weeks have 0 cases, Jun-Oct seasonal peak<br/>rainfall lag3 is the single strongest signal (0.75 corr)"]
+    end
+
+    subgraph P2[Phase 2 - feature and split spec]
+        A2["Lags 1-4 only, no lag0:<br/>matches the 2-4wk breeding/incubation lag the brief describes"]
+        A3["Chronological split only:<br/>train &le;2023 / val 2024 / test &ge;2025, no k-fold"]
+    end
+
+    subgraph P3[Phase 3 - model selection]
+        A4["Round 1, squared-error defaults:<br/>LightGBM best, avg MAE 1.555"]
+        A5["Round 2, add Poisson-objective variants:<br/>lightgbm_poisson wins, 1.497"]
+        A6["Reviewed a teammate's separate 57-feature notebook:<br/>first run incomplete; re-run found Extra Trees won there"]
+        A7["Round 3, tested that winning architecture<br/>on our 15 features: it still loses to lightgbm_poisson"]
+        A8["Decision: ship lightgbm_poisson,<br/>now verified against the strongest outside challenger too"]
+    end
+
+    subgraph P4[Phase 4 - fixes found while verifying]
+        A9["Thresholds must be train-split-only:<br/>corrected 4/9 to the real 4.0/10.0"]
+        A10["Low tier never fired at predicted &le;0:<br/>fixed to &lt;0.5, rounds to 0 integer cases"]
+        A11["Drivers used feature_importances_, identical<br/>for every ward: switched to per-prediction pred_contrib"]
+    end
+
+    subgraph P5[Phase 5 - bonus features]
+        A12["/metrics endpoint: chronological error dashboard"]
+        A13["Confidence intervals: residual-quantile band<br/>scaled by sqrt(predicted), since Poisson variance grows with the mean"]
+    end
+
+    subgraph P6[Phase 6 - merge three branches]
+        A14["Merged ml/ (Arman) + backend (Sayeed) + frontend (Ahnaf) into dev"]
+        A15["Found 2 gitignore landmines silently dropping<br/>main.tsx and modelMetrics.ts: fixed, files recovered"]
+        A16["Found a stale backend process serving yesterday's code<br/>during a live check: killed it, re-verified the real one"]
+        A17["dev promoted to main, full test + live smoke test repeated there"]
+    end
+
+    A1 --> A2 --> A3 --> A4 --> A5 --> A6 --> A7 --> A8 --> A9 --> A10 --> A11 --> A12 --> A13 --> A14 --> A15 --> A16 --> A17
+```
+
 ## Chronological validation split
 
 Train on `date <= 2023-12-31`, validate on `2024-01-01..2024-12-31`, test on `date >= 2025-01-01`.

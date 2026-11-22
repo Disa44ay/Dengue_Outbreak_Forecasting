@@ -20,34 +20,19 @@ Full rationale and design decisions: [requirement.md](requirement.md), [plan.md]
 
 ![Architecture diagram: offline training pipeline (CSV -> ml/features.py -> ml/train.py -> ml/artifacts/) feeding a runtime pipeline (backend/app FastAPI -> frontend React dashboard -> browser)](architecture.svg)
 
-**How the model works.** Three independently trained LightGBM regressors (`model_h2`, `model_h3`,
-`model_h4`) each map the same 15-feature vector — `avg_temp_c`/`rainfall_mm`/`relative_humidity_pct`
-lagged 1–4 weeks per ward (12 features, deliberately no same-week "lag0": the 7–14-day
-mosquito-breeding-and-incubation lag means this week's rain isn't a predictor of this week's
-cases) plus 3 static ward-vulnerability features — straight to their own target: `dengue_cases`
-2, 3, or 4 weeks out. This is **direct multi-horizon forecasting**, not recursive: no model's
-output ever feeds back in as a fake "observed" input for another, so a bad short-horizon guess
-can't corrupt a longer one. Each model uses a **Poisson objective** (not the LightGBM default
-squared-error loss) because the target is a zero-inflated count (58% of weeks have 0 cases) —
-chosen after comparing 12 candidates on the identical chronological split; see `ARCHITECTURE.md`
-for the full table and the evidence behind every one of these choices. Predictions map to a
-Low/Medium/High/Critical tier via train-split-only quantile thresholds, and to a 90% confidence
-interval via a residual-quantile band scaled by `sqrt(predicted)` (Poisson variance grows with the
-mean). Per-ward "weather drivers" come from LightGBM's `pred_contrib` — each feature's actual
-push on *that specific prediction* — not `feature_importances_`, which is one fixed array for the
-whole model and would show the identical top-5 list for every ward.
+**The flow, in one line each:**
 
-**How frontend and backend connect.** `backend/app/main.py` (FastAPI) loads `ml/artifacts/` once
-at startup and serves three read-only GET endpoints: `/wards` (the 60 wards, from
-`ward_snapshot.json`), `/predict?ward_id=&horizon_weeks=` (runs the real model live, every
-request — not a cached/precomputed lookup), and `/metrics` (the chronological test-split MAE/RMSE
-per horizon). `frontend/src/lib/api.ts` calls these over plain `fetch` against
-`VITE_API_BASE_URL` (`frontend/.env`, defaults to `http://localhost:8000`); `hooks/useWards.ts`
-and `hooks/usePrediction.ts` wrap that in React state, and `pages/Dashboard.tsx` wires the ward
-and horizon selectors (kept in the URL's search params) to the risk-tier plate and driver
-breakdown. No shared code between the two — the only contract is the JSON shape FastAPI's
-Pydantic models (`backend/app/schemas.py`) produce and the frontend's TypeScript types
-(`frontend/src/types/api.ts`) expect.
+1. `data/dengue_dataset.csv` → `ml/features.py` builds lag/lead features → `ml/train.py` trains
+   three LightGBM models (2/3/4 weeks ahead) → small files land in `ml/artifacts/` (committed).
+2. `backend/app` (FastAPI) loads those files once at startup, then answers `/wards`, `/predict`,
+   `/metrics` — every prediction runs the real model live, nothing is precomputed.
+3. `frontend/` (React) calls that API over `fetch`, and renders the ward picker, risk tier,
+   weather-driver breakdown, and validation metrics.
+
+That's the whole system. **Why each piece works the way it does — the model comparison, the
+Poisson objective, per-prediction driver attribution, confidence intervals — is in
+[ARCHITECTURE.md](ARCHITECTURE.md)**, including a decision-by-decision flow of how the team got
+there, not repeated here to keep this file a quick orientation, not a second copy of the same doc.
 
 ## Dataset
 
