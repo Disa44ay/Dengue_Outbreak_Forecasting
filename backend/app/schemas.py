@@ -18,5 +18,17 @@ class PredictionResponse(BaseModel):
     ward_id: str
     horizon_weeks: Literal[2, 3, 4]
     predicted_cases: float
+    interval_low: float
+    interval_high: float
     risk_tier: Literal["Low", "Medium", "High", "Critical"]
     drivers: list[DriverContribution]
+
+
+class HorizonMetrics(BaseModel):
+    mae: float
+    rmse: float
+
+
+class MetricsResponse(BaseModel):
+    split_rows: dict[str, int]
+    horizons: dict[str, HorizonMetrics]

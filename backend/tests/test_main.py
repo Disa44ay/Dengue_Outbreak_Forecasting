@@ -30,3 +30,18 @@ def test_driver_breakdown_varies_by_ward():
         for ward in wards
     }
     assert len(set(top_drivers.values())) > 1, f"top driver never changes across wards: {top_drivers}"
+
+
+def test_metrics_returns_mae_rmse_per_horizon():
+    resp = client.get("/metrics")
+    assert resp.status_code == 200
+    body = resp.json()
+    assert set(body["horizons"].keys()) == {"2", "3", "4"}
+    assert all({"mae", "rmse"} <= set(h.keys()) for h in body["horizons"].values())
+
+
+def test_predict_includes_a_sane_confidence_interval():
+    ward_id = client.get("/wards").json()[0]["ward_id"]
+    body = client.get("/predict", params={"ward_id": ward_id, "horizon_weeks": 2}).json()
+    assert body["interval_low"] <= body["predicted_cases"] <= body["interval_high"]
+    assert body["interval_low"] >= 0.0

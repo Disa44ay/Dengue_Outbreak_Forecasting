@@ -4,7 +4,7 @@ import pandas as pd
 import pytest
 
 from ml.features import build_lag_features, build_lead_targets, feature_columns
-from ml.risk import compute_risk_tier, compute_thresholds
+from ml.risk import apply_interval, compute_interval_band, compute_risk_tier, compute_thresholds
 from ml.train import build_ward_snapshot, drop_incomplete_rows, load_and_split
 
 
@@ -89,3 +89,20 @@ def test_build_ward_snapshot_picks_latest_row_even_if_unsorted():
     snap = build_ward_snapshot(df.sample(frac=1, random_state=0), ["rainfall_mm"])
     assert snap["W1"]["rainfall_mm"] == pytest.approx(df.sort_values("date").iloc[-1]["rainfall_mm"])
     assert snap["W1"]["city"] == "Dhaka"
+
+
+def test_compute_interval_band_widens_with_larger_residuals():
+    actual = np.array([5.0, 8.0, 3.0, 10.0, 6.0, 4.0, 9.0, 2.0, 7.0, 5.0])
+    predicted = np.array([5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0])
+    band = compute_interval_band(actual, predicted)
+    assert band["lo_q"] < 0 < band["hi_q"]
+
+
+def test_apply_interval_floors_at_zero_and_scales_with_prediction():
+    band = {"lo_q": -2.0, "hi_q": 2.0}
+    low, high = apply_interval(0.1, band)
+    assert low == 0.0  # floored, since 0.1 - 2*sqrt(0.1) would go negative
+    assert high > 0.1
+
+    low_big, high_big = apply_interval(20.0, band)
+    assert (high_big - low_big) > (high - low)  # wider band for a bigger prediction

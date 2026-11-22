@@ -12,7 +12,7 @@ import pandas as pd
 from sklearn.metrics import mean_absolute_error, mean_squared_error
 
 from ml.features import HORIZONS, TARGET, build_lag_features, build_lead_targets, feature_columns
-from ml.risk import compute_thresholds
+from ml.risk import compute_interval_band, compute_thresholds
 
 ROOT = Path(__file__).resolve().parent.parent
 DATA_PATHS = (ROOT / "data" / "dengue_dataset.csv", ROOT / "ml" / "data" / "dengue.csv")
@@ -64,6 +64,7 @@ def main() -> None:
     print(f"rows: train={len(train)} val={len(val)} test={len(test)}")
 
     metrics = {"split_rows": {"train": len(train), "val": len(val), "test": len(test)}, "horizons": {}}
+    intervals = {}
     for horizon, target in zip(HORIZONS, targets):
         model = lgb.LGBMRegressor(objective="poisson", random_state=0, verbosity=-1)
         model.fit(train[features], train[target])
@@ -72,7 +73,8 @@ def main() -> None:
         mae = float(mean_absolute_error(test[target], predicted))
         rmse = float(np.sqrt(mean_squared_error(test[target], predicted)))
         metrics["horizons"][str(horizon)] = {"mae": mae, "rmse": rmse}
-        print(f"h={horizon} test MAE={mae:.3f} RMSE={rmse:.3f}")
+        intervals[str(horizon)] = compute_interval_band(test[target].values, predicted)
+        print(f"h={horizon} test MAE={mae:.3f} RMSE={rmse:.3f} interval_band={intervals[str(horizon)]}")
 
     thresholds = compute_thresholds(train)
     print(f"thresholds: {thresholds}")
@@ -80,6 +82,7 @@ def main() -> None:
     _write_json("feature_columns.json", features)
     _write_json("ward_snapshot.json", build_ward_snapshot(full, features))
     _write_json("metrics.json", metrics)
+    _write_json("intervals.json", intervals)
 
 
 if __name__ == "__main__":

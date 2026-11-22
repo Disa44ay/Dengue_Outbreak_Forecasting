@@ -1,10 +1,11 @@
+import json
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
 from .inference import Artifacts, load_artifacts, predict_for_ward
-from .schemas import PredictionResponse, WardInfo
+from .schemas import MetricsResponse, PredictionResponse, WardInfo
 
 ARTIFACTS_DIR = Path(__file__).resolve().parent.parent.parent / "ml" / "artifacts"
 
@@ -51,3 +52,11 @@ def predict(ward_id: str, horizon_weeks: int) -> PredictionResponse:
         return predict_for_ward(ward_id, horizon_weeks, artifacts)
     except KeyError as exc:
         raise HTTPException(status_code=404, detail=f"unknown ward_id: {ward_id}") from exc
+
+
+@app.get("/metrics", response_model=MetricsResponse)
+def get_metrics() -> MetricsResponse:
+    path = ARTIFACTS_DIR / "metrics.json"
+    if not path.exists():
+        raise HTTPException(status_code=503, detail="metrics.json not found — train the model first")
+    return MetricsResponse(**json.loads(path.read_text()))

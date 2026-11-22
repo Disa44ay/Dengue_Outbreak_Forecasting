@@ -5,7 +5,7 @@ from typing import Any
 
 import joblib
 
-from ml.risk import compute_risk_tier
+from ml.risk import apply_interval, compute_risk_tier
 
 from .schemas import DriverContribution, PredictionResponse
 
@@ -16,6 +16,7 @@ ARTIFACT_FILES = (
     "thresholds.json",
     "feature_columns.json",
     "ward_snapshot.json",
+    "intervals.json",
 )
 
 
@@ -25,6 +26,7 @@ class Artifacts:
     thresholds: dict[str, float]
     feature_columns: list[str]
     ward_snapshot: dict[str, dict]
+    intervals: dict[int, dict[str, float]]
 
 
 def load_artifacts(artifacts_dir: Path) -> Artifacts:
@@ -38,7 +40,8 @@ def load_artifacts(artifacts_dir: Path) -> Artifacts:
     thresholds = json.loads((artifacts_dir / "thresholds.json").read_text())
     feature_columns = json.loads((artifacts_dir / "feature_columns.json").read_text())
     ward_snapshot = json.loads((artifacts_dir / "ward_snapshot.json").read_text())
-    return Artifacts(models, thresholds, feature_columns, ward_snapshot)
+    intervals = {int(h): band for h, band in json.loads((artifacts_dir / "intervals.json").read_text()).items()}
+    return Artifacts(models, thresholds, feature_columns, ward_snapshot, intervals)
 
 
 def predict_for_ward(ward_id: str, horizon_weeks: int, artifacts: Artifacts) -> PredictionResponse:
@@ -47,6 +50,7 @@ def predict_for_ward(ward_id: str, horizon_weeks: int, artifacts: Artifacts) -> 
     model = artifacts.models[horizon_weeks]
     predicted = float(model.predict([vector])[0])
     risk_tier = compute_risk_tier(predicted, artifacts.thresholds)
+    interval_low, interval_high = apply_interval(predicted, artifacts.intervals[horizon_weeks])
 
     # Per-prediction contributions, not feature_importances_: that's a single array fixed
     # at training time, identical for every ward/request, which would make the driver
@@ -67,6 +71,8 @@ def predict_for_ward(ward_id: str, horizon_weeks: int, artifacts: Artifacts) -> 
         ward_id=ward_id,
         horizon_weeks=horizon_weeks,
         predicted_cases=predicted,
+        interval_low=interval_low,
+        interval_high=interval_high,
         risk_tier=risk_tier,
         drivers=drivers,
     )
