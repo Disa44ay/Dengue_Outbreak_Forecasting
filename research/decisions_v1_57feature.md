@@ -1,3 +1,7 @@
+> *Superseded.* This describes the earlier 57-feature exploratory design (now in
+> research/ml_src/), not the shipped ml/ pipeline. See root ARCHITECTURE.md for
+> what's actually shipped and why.
+
 # Design decisions (decided once, 2026-11-21)
 
 - **D1 Framing: confirmed.** Origin week t, features use data <= t only, target = cases at t+h, h in {2,3,4}, one direct model per horizon. Features: lags 0-8 of the five weather columns, rolling rain sums (2/4/8 wk), rolling temp and humidity means (4/8 wk), three static ward indices, sin/cos of the target week-of-year. No `ward_id`, `city` or case lags, so an uploaded file with unseen wards and no case history still works. Case lags are an ablation line only.
