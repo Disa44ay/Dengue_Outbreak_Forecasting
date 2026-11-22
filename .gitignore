@@ -1,7 +1,7 @@
 plan.md
 CLAUDE.md
-docs/
-data/
+/docs/
+/data/
 
 # build / deps
 node_modules/
@@ -10,12 +10,3 @@ __pycache__/
 *.pyc
 .pytest_cache/
 
-# scaffold-only commit: real app code staged here, not yet committed.
-# Remove these lines when you're ready to commit the real backend/frontend.
-frontend/src/App.tsx
-frontend/src/api.ts
-frontend/src/App.css
-frontend/src/index.css
-frontend/src/main.tsx
-frontend/src/assets/
-frontend/public/
