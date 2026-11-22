@@ -1,0 +1,340 @@
+/* Hallmark · shape: app screen · genre: modern-minimal · theme: Wayfind (deal 3/3, seed public-health-dashboard-ward-level-dengue-8905·7aeae116·2026-11-22·r0)
+ * nav: top bar, wordmark left, no actions · signature: the risk plate, a figure as a sign · states: loading, empty, error, full · wayfind: platform
+ * axes: light/mono/cool · posture: restrained · contrast: pass · v2.0.0 */
+/* Hallmark · pre-emit critique: P4 H4 E4 S4 R4 V3 · weakest: V, single screen shares the departure-board table range with the dealt theme's own pictured use; kept it because the forecast table is the real signature here, not a borrowed one */
+@import url("./tokens.css");
+@import url("./base.css");
+
+:root {
+  --control-height: 40px;
+}
+
+.shell {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+.shell-nav {
+  height: 64px;
+  display: flex;
+  align-items: center;
+  padding-inline: var(--gutter);
+  border-bottom: var(--rule-bar) solid var(--color-ink);
+}
+
+.shell-nav .wordmark {
+  font-size: var(--text-lg);
+  font-weight: var(--display-weight);
+  letter-spacing: var(--tracking-display);
+}
+
+.shell-main {
+  flex: 1;
+  width: 100%;
+  max-width: var(--container);
+  margin-inline: auto;
+  padding: var(--space-xl) var(--gutter) var(--space-3xl);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xl);
+}
+
+/* controls row */
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-lg);
+  align-items: flex-end;
+}
+
+.field-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.field-group .field-label {
+  font-size: var(--text-sm);
+  color: var(--color-muted);
+}
+
+.select-shell {
+  position: relative;
+  display: inline-flex;
+}
+
+.select-shell select {
+  appearance: none;
+  min-width: 15rem;
+  height: var(--control-height);
+  padding: 0 2.25rem 0 var(--space-sm);
+  border: var(--rule-bar) solid var(--color-ink);
+  background: var(--color-paper-3);
+  color: var(--color-ink);
+  font: inherit;
+  font-weight: 500;
+}
+
+.select-shell select:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.select-shell::after {
+  content: "";
+  position: absolute;
+  right: var(--space-sm);
+  top: 50%;
+  width: 8px;
+  height: 8px;
+  border-right: var(--rule-hair) solid var(--color-ink);
+  border-bottom: var(--rule-hair) solid var(--color-ink);
+  transform: translateY(-70%) rotate(45deg);
+  pointer-events: none;
+}
+
+.select-shell select:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.select-shell select:active {
+  background: var(--color-paper-2);
+}
+
+.choice-set {
+  display: flex;
+}
+
+.choice-set label {
+  position: relative;
+}
+
+.choice-set input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  margin: 0;
+  cursor: pointer;
+}
+
+.choice-set span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: var(--control-height);
+  min-width: 4.5rem;
+  padding-inline: var(--space-sm);
+  border: var(--rule-bar) solid var(--color-ink);
+  font-weight: 500;
+}
+
+.choice-set label + label span {
+  border-left: none;
+}
+
+.choice-set input:checked + span {
+  background: var(--color-ink);
+  color: var(--color-paper);
+}
+
+.choice-set input:focus-visible + span {
+  outline: 2px solid var(--color-focus);
+  outline-offset: -2px;
+}
+
+.choice-set input:active + span {
+  background: var(--color-paper-2);
+}
+
+/* the risk plate: the signature */
+
+.plate {
+  border: var(--rule-bar) solid var(--color-ink);
+  background: var(--color-ink);
+  color: var(--color-paper);
+  padding: var(--space-xl);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xl) var(--space-2xl);
+  align-items: flex-end;
+}
+
+.plate-id {
+  font-size: var(--text-lg);
+  font-weight: 500;
+}
+
+.plate-id .plate-city {
+  color: var(--color-paper);
+  opacity: 0.6;
+  font-weight: 400;
+}
+
+.plate-figure {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-xs);
+}
+
+.plate-figure .figure {
+  font-size: var(--text-3xl);
+  font-weight: var(--display-weight);
+  color: var(--color-accent-2);
+  font-variant-numeric: tabular-nums;
+}
+
+.plate-figure .unit {
+  font-size: var(--text-sm);
+  color: var(--color-paper);
+  opacity: 0.6;
+}
+
+.tier {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  font-weight: 500;
+}
+
+.tier-swatch {
+  width: 12px;
+  height: 12px;
+  flex-shrink: 0;
+}
+
+.tier--low .tier-swatch { background: var(--color-tier-low); }
+.tier--medium .tier-swatch { background: var(--color-accent-2); }
+.tier--high .tier-swatch { background: var(--color-tier-high); }
+.tier--critical .tier-swatch { background: var(--color-tier-critical); }
+
+/* driver board: a departure-board table */
+
+.board {
+  border: var(--rule-bar) solid var(--color-ink);
+}
+
+.board-head {
+  background: var(--color-ink);
+  color: var(--color-paper);
+  padding: var(--space-sm) var(--space-lg);
+  font-weight: 500;
+}
+
+.board table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.board th {
+  text-align: left;
+  font-weight: 500;
+  color: var(--color-muted);
+  padding: var(--space-xs) var(--space-lg);
+  border-bottom: var(--rule-bar) solid var(--color-ink);
+}
+
+.board td {
+  padding: var(--space-sm) var(--space-lg);
+  border-bottom: var(--rule-hair) solid var(--color-rule);
+  vertical-align: middle;
+}
+
+.board tr:last-child td {
+  border-bottom: none;
+}
+
+.board td.num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.importance-bar-track {
+  width: 100%;
+  height: 8px;
+  background: var(--color-paper-2);
+}
+
+.importance-bar-fill {
+  height: 100%;
+  background: var(--color-accent);
+}
+
+/* validation rows */
+
+.validation-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: var(--space-sm) var(--space-lg);
+  border-bottom: var(--rule-hair) solid var(--color-rule);
+}
+
+.validation-row:last-child {
+  border-bottom: none;
+}
+
+.validation-row .horizon-label {
+  font-weight: 500;
+}
+
+.validation-row .metric {
+  display: flex;
+  gap: var(--space-xl);
+  font-variant-numeric: tabular-nums;
+}
+
+.validation-row .metric .metric-label {
+  color: var(--color-muted);
+  font-size: var(--text-sm);
+}
+
+/* states */
+
+.skeleton {
+  background: var(--color-paper-2);
+}
+
+.skeleton-plate {
+  height: 140px;
+  border: var(--rule-bar) solid var(--color-rule);
+}
+
+.skeleton-row {
+  height: 44px;
+  margin-bottom: var(--rule-hair);
+}
+
+.state-message {
+  border: var(--rule-hair) solid var(--color-rule);
+  padding: var(--space-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.state-message .state-title {
+  font-weight: 500;
+}
+
+.state-message.is-error {
+  border-color: var(--color-error);
+}
+
+.state-message .state-why {
+  color: var(--color-muted);
+  font-size: var(--text-sm);
+}
+
+@media (max-width: 40rem) {
+  .plate {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .board {
+    overflow-x: auto;
+  }
+}
