@@ -88,6 +88,19 @@ Final per-horizon test-split metrics (`ml/artifacts/metrics.json`):
 | 3 weeks | 1.493 | 2.686 |
 | 4 weeks | 1.682 | 3.081 |
 
+## Confidence intervals (bonus)
+
+Every `/predict` response includes `interval_low`/`interval_high`: a 90% residual-quantile band
+(`ml/risk.py`'s `compute_interval_band`/`apply_interval`), computed per horizon from the test
+split's `(actual − predicted) / sqrt(predicted)` residuals and scaled by `sqrt(predicted)` at
+serving time — Poisson variance grows with the mean, so a fixed-width band would be too tight for
+high-risk predictions and too wide for near-zero ones. Stored as `ml/artifacts/intervals.json`.
+
+Honest limit: these bands are calibrated on the same test split already flagged above as
+optimistic, and real calibration is imperfect — a high-risk test-set example (predicted 23.17
+cases) had a 90% interval of [14.34, 32.55], but the true value turned out to be 12, just outside
+the lower bound. The interval communicates uncertainty; it is not a guarantee.
+
 **Limitation, stated plainly:** the 15-feature comparison above (and the `extra_trees_poisson`
 head-to-head) used the same 2025 split both to pick the winning model *and* to report its MAE —
 so these numbers are optimistic, not an untouched holdout score. A stricter setup would reserve
