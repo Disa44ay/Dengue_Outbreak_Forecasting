@@ -35,29 +35,30 @@ missing values.
 
 ## Environment / versions
 
-| Tool | Required (latest stable, verified 2026-11-21) |
+| Tool | Required (verified 2026-11-22 across two teammates' machines) |
 |---|---|
-| Python | **3.15.2** ([python.org](https://www.python.org/downloads/) or `winget install Python.Python.3.15`) |
+| Python | **3.11 or newer** (verified working on 3.11.9 and 3.12 — exact package versions are pinned in `requirements.txt`, so any Python new enough to install them works) |
 | Node.js | **26.13.1 LTS** (`winget upgrade --id OpenJS.NodeJS.LTS`) |
 | npm | bundled with Node |
 | git | 2.55+ |
 
-All three teammates: install/upgrade to the versions above before starting, so everyone's
-environment (and the judges' fresh clone) behaves the same way.
+(Earlier draft of this table claimed Python 3.15.2 was required — untested at the time. Don't
+install a specific bleeding-edge version just to match that; any 3.11+ install works.)
 
 ## Setup
 
-> Filled in as the backend/frontend scaffolding lands — see `plan.md` for the build order.
+Run every command below from the **repo root** — `backend/app/inference.py` imports the sibling
+`ml` package (`from ml.risk import compute_risk_tier`), which only resolves if Python is launched
+from the root, not from inside `backend/`.
 
 ```powershell
-# Backend (FastAPI)
-cd backend
+# Backend (FastAPI) — from repo root
 python -m venv .venv
 .venv\Scripts\activate
 pip install -r requirements.txt
-uvicorn app.main:app --reload
+uvicorn backend.app.main:app --reload
 
-# Frontend (React)
+# Frontend (React) — in a second terminal
 cd frontend
 npm install
 npm run dev

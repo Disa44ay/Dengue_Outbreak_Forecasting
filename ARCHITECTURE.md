@@ -27,7 +27,10 @@ lag/lead history (first/last 1-4 weeks per ward, ~240 rows each end), the three 
 
 Risk tier thresholds are computed on the **train split only**, not the full dataset, for the same
 leakage reason: `medium_max = 4.0`, `high_max = 10.0` (train split p75/p90 of `dengue_cases`,
-each forced to be strictly increasing). Tiers: Low = 0, Medium = 1–4, High = 5–10, Critical = 11+.
+each forced to be strictly increasing). Tiers: **Low: predicted < 0.5** (the model's Poisson
+output is continuous and essentially never lands on exactly 0, but `dengue_cases` is always an
+integer — 0.5 is the value below which a prediction rounds to 0 cases, not an arbitrary cutoff),
+Medium 0.5–4, High 5–10, Critical 11+.
 
 ## Model selection
 
@@ -84,6 +87,27 @@ Final per-horizon test-split metrics (`ml/artifacts/metrics.json`):
 | 2 weeks | 1.315 | 2.469 |
 | 3 weeks | 1.493 | 2.686 |
 | 4 weeks | 1.682 | 3.081 |
+
+**Limitation, stated plainly:** the 15-feature comparison above (and the `extra_trees_poisson`
+head-to-head) used the same 2025 split both to pick the winning model *and* to report its MAE —
+so these numbers are optimistic, not an untouched holdout score. A stricter setup would reserve
+test purely for final reporting after model selection is locked on validation alone.
+
+**Driver breakdown uses per-prediction contributions, not global feature importance.**
+`backend/app/inference.py` calls `model.predict(vector, pred_contrib=True)` rather than reading
+`model.feature_importances_` — the latter is a single array fixed at training time, identical for
+every ward and every request, which would make the dashboard show the same top-5 "drivers" no
+matter what was predicted. `pred_contrib` gives each feature's actual push on *that* prediction
+(log-space, since the objective is Poisson), so different wards correctly show different drivers.
+
+## Data caveats
+
+The dataset is clean and likely synthetic: `max_temp_c`/`min_temp_c` are identical across every
+ward within a given city-week, and `rainfall_mm`/`relative_humidity_pct`/`avg_temp_c` are
+partially shared across wards in the same city-week rather than fully independent per ward. This
+documentation makes no claim of real-world validity or fully independent ward-level weather —
+the model and its evaluation should be read as a prototype exercise on this dataset, not as a
+validated real-world forecasting tool.
 
 ## Compute and API cost efficiency
 
