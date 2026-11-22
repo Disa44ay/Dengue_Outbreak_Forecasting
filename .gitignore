@@ -12,10 +12,6 @@ __pycache__/
 
 # scaffold-only commit: real app code staged here, not yet committed.
 # Remove these lines when you're ready to commit the real backend/frontend.
-backend/app/schemas.py
-backend/app/inference.py
-backend/app/main.py
-backend/tests/test_main.py
 frontend/src/App.tsx
 frontend/src/api.ts
 frontend/src/App.css
